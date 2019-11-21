@@ -77,7 +77,7 @@ void beep_handle_sub()
 	{
 		g_beep_obj.ring.tick = 0;
 		
-		if (g_beep_obj.ring.times != 0xFF && g_beep_obj.ring.times != 0x00)
+		if (g_beep_obj.ring.times  < 2 * 0xFF && g_beep_obj.ring.times != 0x00)
 		{
 			beep_off();
 			g_beep_obj.ring.times --;
@@ -91,7 +91,7 @@ void beep_handle_sub()
 	{
 		g_beep_obj.ring.tick = 0;
 		
-		if (g_beep_obj.ring.times != 0xFF && g_beep_obj.ring.times != 0x00)
+		if (g_beep_obj.ring.times >= 2 * 0xFF && g_beep_obj.ring.times != 0x00)
 		{
 			beep_on();
 			g_beep_obj.ring.times --;
