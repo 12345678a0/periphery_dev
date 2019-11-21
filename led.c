@@ -85,7 +85,7 @@ void led_handle_sub(led_id_en id)
 	{
 		g_led_obj.twinkle[id].tick = 0;
 		
-		if (g_led_obj.twinkle[id].times != 0xFF && g_led_obj.twinkle[id].times != 0x00)
+		if (g_led_obj.twinkle[id].times < 2 * 0xFF && g_led_obj.twinkle[id].times != 0x00)
 		{
 			if (g_led_obj.twinkle[id].state == LED_ON_STATE)
 			{
@@ -100,7 +100,7 @@ void led_handle_sub(led_id_en id)
 				g_led_obj.twinkle[id].times	--;	
 			}		
 		}
-		else if(g_led_obj.twinkle[id].times == 0xFF)
+		else if(g_led_obj.twinkle[id].times >= 2 * 0xFF)
 		{
 			if (g_led_obj.twinkle[id].state == LED_ON_STATE)
 			{
