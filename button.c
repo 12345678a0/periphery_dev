@@ -20,7 +20,7 @@
 #ifndef configUSE_BUTTON_HOOK
 	#error configUSE_BUTTON_HOOK should be defined in configButton.h as either 1 or 0.
 #else
-	extern void button_event_hook(button_id_en id, button_event_en event);	
+	extern void button_event_hook(button_id_en id, button_event_en event, uint16_t presstime);	
 #endif /* configUSE_BUTTON_HOOK */
 	
 
@@ -49,8 +49,10 @@ typedef struct _tag_button_obj_st {
 	uint16_t presstime[BUTTON_ID_MAX];
 	/* 双击时间 */
 	uint16_t dbclik_time[BUTTON_ID_MAX];
+	/* 秒计数    */
+	uint8_t second_count[BUTTON_ID_MAX];
 	/* 按键事件回调 */
-	void (*button_event_cb)(button_id_en, button_event_en);	
+	void (*button_event_cb)(button_id_en, button_event_en, uint16_t presstime);	
 } button_obj_st;
 
 /* 按键对象定义 */
@@ -61,12 +63,12 @@ void button_hold_press_handle(button_id_en id)
 	/* 按住回调 */
 	if(g_button_obj.button_event_cb)
 	{
-		g_button_obj.button_event_cb(id, BUTTON_EVENT_HOLD_PRESS);
+		g_button_obj.button_event_cb(id, BUTTON_EVENT_HOLD_PRESS, g_button_obj.presstime[id]);
 	}
 	
 	#if (configUSE_BUTTON_HOOK == 1)
 	{
-		button_event_hook(id, BUTTON_EVENT_HOLD_PRESS);
+		button_event_hook(id, BUTTON_EVENT_HOLD_PRESS, g_button_obj.presstime[id]);
 	}
 	#endif /* configUSE_BUTTON_HOOK */
 }
@@ -76,12 +78,12 @@ void button_short_press_handle(button_id_en id)
 	/* 短按回调 */ 
 	if (g_button_obj.button_event_cb)
 	{
-		g_button_obj.button_event_cb(id, BUTTON_EVENT_SHORT_PRESS);
+		g_button_obj.button_event_cb(id, BUTTON_EVENT_SHORT_PRESS, g_button_obj.presstime[id]);
 	}
 	
 	#if (configUSE_BUTTON_HOOK == 1)
 	{
-		button_event_hook(id, BUTTON_EVENT_SHORT_PRESS);
+		button_event_hook(id, BUTTON_EVENT_SHORT_PRESS, g_button_obj.presstime[id]);
 	}
 	#endif /* configUSE_BUTTON_HOOK */
 }
@@ -91,12 +93,12 @@ void button_long_press_handle(button_id_en id)
 	/* 长按回调 */ 
 	if (g_button_obj.button_event_cb)
 	{
-		g_button_obj.button_event_cb(id, BUTTON_EVENT_LONG_PRESS);
+		g_button_obj.button_event_cb(id, BUTTON_EVENT_LONG_PRESS, g_button_obj.presstime[id]);
 	}
 	
 	#if (configUSE_BUTTON_HOOK == 1)
 	{
-		button_event_hook(id, BUTTON_EVENT_LONG_PRESS);
+		button_event_hook(id, BUTTON_EVENT_LONG_PRESS, g_button_obj.presstime[id]);
 	}
 	#endif /* configUSE_BUTTON_HOOK */
 }
@@ -106,15 +108,56 @@ void button_dbclik_press_handle(button_id_en id)
 	/* 双击回调 */ 
 	if (g_button_obj.button_event_cb)
 	{
-		g_button_obj.button_event_cb(id, BUTTON_EVENT_DBCLIK);
+		g_button_obj.button_event_cb(id, BUTTON_EVENT_DBCLIK, g_button_obj.presstime[id]);
 	}
 	
 	#if (configUSE_BUTTON_HOOK == 1)
 	{
-		button_event_hook(id, BUTTON_EVENT_DBCLIK);
+		button_event_hook(id, BUTTON_EVENT_DBCLIK, g_button_obj.presstime[id]);
 	}
 	#endif /* configUSE_BUTTON_HOOK */
 }
+
+void button_up_handle(button_id_en id)
+{
+	/* 弹起回调 */ 
+	if (g_button_obj.button_event_cb)
+	{
+		g_button_obj.button_event_cb(id, BUTTON_EVENT_UP, g_button_obj.presstime[id]);
+	}
+
+	#if (configUSE_BUTTON_HOOK == 1)
+	{
+		button_event_hook(id, BUTTON_EVENT_UP, g_button_obj.presstime[id]);
+	}
+	#endif /* configUSE_BUTTON_HOOK */
+}
+
+
+void button_second_count_handle(button_id_en id)
+{
+	uint16_t presstime = g_button_obj.presstime[id]; 
+
+	/* 按键按下秒计数回调 每秒回调一次 */ 
+	if (presstime / 1000 != g_button_obj.second_count[id])
+	{
+		g_button_obj.second_count[id] = presstime / 1000;
+
+		if (g_button_obj.button_event_cb)
+		{
+			g_button_obj.button_event_cb(id, BUTTON_EVENT_SECOND_COUNT, g_button_obj.second_count[id]);
+		}
+
+		#if (configUSE_BUTTON_HOOK == 1)
+		{
+			button_event_hook(id, BUTTON_EVENT_SECOND_COUNT, g_button_obj.presstime[id]);
+		}
+		#endif
+	}
+
+	
+}
+
 
 void button_times_handle(button_id_en id)
 {
@@ -145,6 +188,8 @@ void button_FSM(button_id_en id)
 			{
 				//清除按下时间
 				g_button_obj.presstime[id] = 0;
+				//清除秒计数
+				g_button_obj.second_count[id] = 0;
 				state[id] = BUTTON_FILT_STATE; 
 			}
 			break;
@@ -168,6 +213,8 @@ void button_FSM(button_id_en id)
 			{
 				//清除按下时间
 				g_button_obj.presstime[id] = 0;
+				//清除秒计数
+				g_button_obj.second_count[id] = 0;
 				state[id] = BUTTON_TIMER_ING_STATE; 	
 			}
 			else
@@ -181,10 +228,12 @@ void button_FSM(button_id_en id)
 			{
 				//按住处理		
 				button_hold_press_handle(id);
+
+				// 按键按下秒计数处理
+				button_second_count_handle(id);
 				
 				if (g_button_obj.presstime[id] >= BUTTON_LONG_TIME)
 				{
-					
 					state[id] = BUTTON_TIMER_OVER_STATE; 	
 				}
 				else
@@ -194,6 +243,8 @@ void button_FSM(button_id_en id)
 			}
 			else
 			{
+				// 弹起处理
+				button_up_handle(id);
 				state[id] = BUTTON_TIMER_OVER_STATE; 	
 			}
 			break;	
@@ -223,21 +274,26 @@ void button_FSM(button_id_en id)
 			{
 				//按住处理		
 				button_hold_press_handle(id);
+
+				// 按键按下秒计数处理
+				button_second_count_handle(id);
 			}
 			else
 			{
+				// 弹起处理
+				button_up_handle(id);
 				state[id] = BUTTON_LOOSEN_STATE;
 			}
 			break;	
 	}	
 }
 
-void button_register_cb(void (*button_event_cb)(button_id_en, button_event_en))
+void button_event_register_cb(void (*button_event_cb)(button_id_en, button_event_en, uint16_t presstime))
 {
 	g_button_obj.button_event_cb = button_event_cb;  		
 }
 
-void button_unregister_cb()
+void button_event_unregister_cb()
 {
 	g_button_obj.button_event_cb = NULL;  	
 }
