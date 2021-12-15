@@ -1,13 +1,15 @@
 #include "gpio.h"
 #include "beep.h"
 
-#ifndef BEEP_ON_LEVEL
+#if (BEEP_RING_LEVEL == GPIO_LEVEL_HIGH)
 #define BEEP_ON_LEVEL     GPIO_LEVEL_HIGH
-#endif
-
-#ifndef BEEP_OFF_LEVEL
 #define BEEP_OFF_LEVEL    GPIO_LEVEL_LOW
-#endif
+#elif (BEEP_RING_LEVEL == GPIO_LEVEL_LOW) 
+#define BEEP_ON_LEVEL     GPIO_LEVEL_LOW
+#define BEEP_OFF_LEVEL    GPIO_LEVEL_HIGH
+#else
+#error BEEP_RING_LEVEL should be defined in configButton.h as either GPIO_LEVEL_HIGH or GPIO_LEVEL_LOW.
+#endif /* BEEP_RING_LEVEL  */
 
 #define BEEP_ON_STATE   1
 #define BEEP_OFF_STATE  0
@@ -30,7 +32,7 @@ typedef struct _tag_beep_obj_st {
 } beep_obj_st;
 
 /* beep对象定义 */
-static beep_obj_st g_beep_obj;
+static beep_obj_st g_beep_obj = {0};
 
 void beep_on()
 {
@@ -71,7 +73,7 @@ void beep_run_tick(uint8_t base)
 }
 
 
-void beep_handle_sub()
+void beep_handle(void)
 {
 	if (g_beep_obj.ring.state == BEEP_ON_STATE && g_beep_obj.ring.tick >= g_beep_obj.ring.on_time)
 	{
@@ -103,14 +105,17 @@ void beep_handle_sub()
 	}		
 }
 
-void beep_handle()
+void beep_loop(void)
 {
 	if (g_beep_obj.bind.enable)
 	{
-		beep_handle_sub();
+		beep_handle();
 	}
 }
 
+void beep_init(void)
+{
+}
 
 
 

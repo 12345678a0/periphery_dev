@@ -1,12 +1,14 @@
 #include "gpio.h"
 #include "led.h"
 
-#ifndef LED_ON_LEVEL
+#if (LED_BRIGHT_LEVEL == GPIO_LEVEL_HIGH)
 #define LED_ON_LEVEL     GPIO_LEVEL_HIGH
-#endif
-
-#ifndef LED_OFF_LEVEL
 #define LED_OFF_LEVEL    GPIO_LEVEL_LOW
+#elif (LED_BRIGHT_LEVEL == GPIO_LEVEL_LOW)
+#define LED_ON_LEVEL     GPIO_LEVEL_LOW
+#define LED_OFF_LEVEL    GPIO_LEVEL_HIGH
+#else
+#error LED_BRIGHT_LEVEL should be defined in configButton.h as either GPIO_LEVEL_HIGH or GPIO_LEVEL_LOW.
 #endif
 
 #define LED_ON_STATE   1
@@ -30,7 +32,7 @@ typedef struct _tag_led_obj_st {
 } led_obj_st;
 
 /* led对象定义 */
-static led_obj_st g_led_obj;
+static led_obj_st g_led_obj = {0};
 
 
 void led_on(led_id_en id)
@@ -79,7 +81,7 @@ void led_run_tick(uint8_t base)
 }
 
 
-void led_handle_sub(led_id_en id)
+void led_handle(led_id_en id)
 {
 	if (g_led_obj.twinkle[id].flag == true && g_led_obj.twinkle[id].tick >= g_led_obj.twinkle[id].interval)	
 	{
@@ -116,7 +118,7 @@ void led_handle_sub(led_id_en id)
 	}
 }
 
-void led_handle()
+void led_loop(void)
 {
 	uint8_t id;
 	
@@ -124,11 +126,13 @@ void led_handle()
 	{
 		if (g_led_obj.bind[id].enable)
 		{
-			led_handle_sub(id);
+			led_handle((led_id_en)id);
 		}
 	}
 }
 
+void led_init(void)
+{
 
-
+}
 

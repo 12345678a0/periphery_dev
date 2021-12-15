@@ -1,4 +1,4 @@
-#include "gpio.h"
+﻿#include "gpio.h"
 #include "button.h"
 
 
@@ -51,7 +51,7 @@ typedef struct _tag_button_obj_st {
 } button_obj_st;
 
 /* 按键对象定义 */
-static  button_obj_st g_button_obj;
+static  button_obj_st g_button_obj = {0};
 
 void button_down_press_handle(button_id_en id)
 {
@@ -259,7 +259,7 @@ void button_run_tick(uint8_t base)
 	}
 }
 
-void button_handle()
+void button_loop(void)
 {
 	uint8_t id;
 		
@@ -272,3 +272,9 @@ void button_handle()
 		}
 	}
 }
+
+void button_init(void)
+{
+	
+}
+

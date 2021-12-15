@@ -1,7 +1,8 @@
 #ifndef		__LED_H__
 #define		__LED_H__
 
-#include "configLed.h"
+// 定义LED亮的电平
+#define LED_BRIGHT_LEVEL    GPIO_LEVEL_HIGH 
 
 #define LED_TWINKLE_TIMES_1    1
 #define LED_TWINKLE_TIMES_2    2
@@ -19,7 +20,8 @@ typedef enum {
 	LED_ID_MAX
 } led_id_en;
 
-void led_handle();
+void led_init(void);
+void led_loop(void);
 void led_run_tick(uint8_t base);
 void led_bind_gpio(led_id_en id, gpio_num_en num);
 void led_on(led_id_en id);
