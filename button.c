@@ -176,6 +176,13 @@ void button_FSM(button_id_en id)
 					g_button_obj.second_count[id] = 0;
 					// 按下处理
 					button_down_press_handle(id);
+					//按键次数累加
+					g_button_obj.times[id] ++;
+					/* 清除双击计时 */
+					if (1 == g_button_obj.times[id])
+					{
+						g_button_obj.dbclik_time[id] = 0;
+					}
 					next_state[id] = BUTTON_TIMER_ING_STATE; 	
 				}
 				else
@@ -201,13 +208,6 @@ void button_FSM(button_id_en id)
 				break;	
 			/* 计时结束状态 */	
 			case BUTTON_TIMER_OVER_STATE:
-				//按键次数累加
-				g_button_obj.times[id] ++;
-				/* 清除双击计时 */
-				if (1 == g_button_obj.times[id])
-				{
-					g_button_obj.dbclik_time[id] = 0;
-				}
 				next_state[id] = BUTTON_WAIT_LOOSEN_STATE; 
 				break;	
 			/* 等待松开状态 */	
