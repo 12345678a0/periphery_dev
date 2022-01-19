@@ -34,7 +34,7 @@ typedef struct _tag_beep_obj_st {
 /* beep对象定义 */
 static beep_obj_st g_beep_obj = {0};
 
-void beep_on()
+void beep_on(void)
 {
 	if (g_beep_obj.bind.enable)
 	{
@@ -43,7 +43,7 @@ void beep_on()
 	}
 }
 
-void beep_off()
+void beep_off(void)
 {
 	if (g_beep_obj.bind.enable)
 	{
